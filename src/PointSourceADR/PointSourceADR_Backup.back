@@ -1,0 +1,60 @@
+# partLT = L0.*T1 + G11.*G01 + G12.*G02;
+# G1a = T0.*G11 + 2.0*T1.*G01;
+# G2a = T0.*G12 + 2.0*T1.*G02;
+# G1b = T0.*G11;
+# G2b = T0.*G12;
+# REAC = spdiagm(1im*omega*(partLT[:] + gamma[:].*mNodal[:]) - Som[:]);
+# ADV_long = G1a.*Dx1_long + G2a.*Dx2_long + Dx1_long*spdiagm(G1b) + Dx2_long*spdiagm(G2b);
+# ADV_long = 1im*omega*ADV_long;
+# ADV_shortUp = G1.*Dx1_shortUp + G2.*Dx2_shortUp + Dx1_shortUp*spdiagm(G1) + Dx2_shortUp*spdiagm(G2);
+# ADV_shortUp = 1im*omega*ADV_shortUp;
+# G[1] = G1a; G[2] = G2a;
+# ADV_longUp = generateSecondOrderUpwindAdvection(OPmap,G,h,n_nodes);
+# G[1] = G1b; G[2] = G2b;
+# OPmap[2,:] = 1;
+# OPmap[end-1,:] = 1;
+# OPmap[:,2] = 1;
+# OPmap[:,end-1] = 1;
+# OPmap[1,:] = -1;
+# OPmap[end,:] = -1;
+# OPmap[:,1] = -1;
+# OPmap[:,end] = -1;
+# ADV_longUp += generateSecondOrderUpwindAdvection(OPmap,G,h,n_nodes,true);
+# ADV_longUp = 1im*omega*(ADV_longUp)
+
+
+# Lap,dxx1,dxx2,dxx3   = getNodalLaplacianMatrix2(Mesh);
+
+# dxx1 = (0.5*h[1])*dxx1;
+# dxx1[end,end-1:end] = 0.0;
+# dxx1[1,1:2] = 0.0;
+# DXX1 = kron(speye(n_nodes[2]),dxx1);
+# dxx2 = (0.5*h[2])*dxx2;
+# dxx2[1,1:2] = 0.0;
+# dxx2[end,end-1:end] = 0.0;
+# DXX2 = kron(dxx2,speye(n_nodes[1])) ;
+
+# Dx1_shortUp = Dx1_long + sign(G1).*DXX1;
+# Dx2_shortUp = Dx2_long + sign(G2).*DXX2;
+
+
+# ADV_shortUp = G1.*Dx1_shortUp + G2.*Dx2_shortUp + Dx1_shortUp*spdiagm(G1) + Dx2_shortUp*spdiagm(G2);
+# ADV_shortUp = 1im*omega*ADV_shortUp;
+
+
+# function getNodalLaplacianMatrix2(Msh::RegularMesh)
+# nodes = Msh.n+1;
+# I1 = speye(nodes[1]);
+# Dxx1 = dxxMat(nodes[1],Msh.h[1]);
+# I2 = speye(nodes[2]);
+# Dxx2 = dxxMat(nodes[2],Msh.h[2]);
+# Dxx3 = spzeros(0);
+# if Msh.dim==2
+	# L = kron(I2,Dxx1) + kron(Dxx2,I1);
+# else
+	# I3 = speye(nodes[3]);
+	# Dxx3 = dxxMat(nodes[3],Msh.h[3]);
+	# L = kron(I3,kron(I2,Dxx1) + kron(Dxx2,I1)) + kron(Dxx3,kron(I2,I1));
+# end
+# return L,Dxx1,Dxx2,Dxx3;
+# end

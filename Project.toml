@@ -1,0 +1,15 @@
+name = "Helmholtz"
+uuid = "e64c32b0-b297-11e9-3d04-db45b5588c0d"
+authors = ["Eran Treister <erantreister@gmail.com>"]
+version = "0.1.0"
+
+[deps]
+FactoredEikonalFastMarching = "a21af1b0-b122-11e9-3f46-a5fb68b7f21f"
+KrylovMethods = "9a2cd570-f05c-5dc1-9209-93ad6f5727f7"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+Multigrid = "3ee21790-adf8-11e9-0909-2103a2f09851"
+ParSpMatVec = "ccf9b6e2-7ea7-596a-9d65-09863b18e8cc"
+Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
+SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+jInv = "3dacf901-f8cd-5544-86ed-7a705f85c244"
