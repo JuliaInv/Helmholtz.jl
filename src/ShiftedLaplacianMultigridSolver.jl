@@ -94,7 +94,7 @@ function solveLinearSystem(ShiftedHT,B,param::ShiftedLaplacianMultigridSolver,do
 	param.solveTime +=(time_ns() - tt)/(10^9);
 	
 	if num_iter >= param.MG.maxOuterIter
-		warn("MG solver reached maximum iterations without convergence");
+		println("WARNING: MG solver reached maximum iterations without convergence");
 	end
 
 	return X, param

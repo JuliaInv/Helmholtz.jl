@@ -5,16 +5,16 @@ os:
   - linux
 
 julia:
-  - release
+  - 0.7
 
 notifications:
   email: false
-
+ 
 before_install:
    - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
 
 script:
-  - julia --check-bounds=yes -e 'Pkg.clone(pwd()); Pkg.build("Helmholtz"); Pkg.test("Helmholtz"; coverage=true)'
+  
 
 after_success:
-  - julia -e 'cd(Pkg.dir("Helmholtz")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(Coveralls.process_folder())'
+  - julia --check-bounds=yes --color=yes -e 'using Pkg; Pkg.test(coverage=true);'
