@@ -9,9 +9,9 @@ mutable struct ShiftedLaplacianMultigridSolver <: AbstractSolver
 	inner			:: Int64
 	doClear			:: Int64 # flag to clear factorization
 	verbose			:: Bool
-	setupTime       ::Real
-	nPrec           ::Int
-	solveTime       ::Real
+	setupTime       :: Real
+	nPrec           :: Int
+	solveTime       :: Real
 end
 
 import jInv.LinearSolvers.copySolver;
@@ -41,7 +41,7 @@ function solveLinearSystem(ShiftedHT,B,param::ShiftedLaplacianMultigridSolver,do
 		return X, param;
 	end
 	tt = time_ns()
-	TYPE = eltype(B);
+	# TYPE = eltype(B);
 	n = size(B,1)
 	nrhs = size(B,2)
 
@@ -61,14 +61,14 @@ function solveLinearSystem(ShiftedHT,B,param::ShiftedLaplacianMultigridSolver,do
 		# MGsetup(getMultilevelOperatorConstructor(Hparam_shifted,getOperator,restrictParam),Hparam_shifted.Mesh,param.MG,TYPE,nrhs,param.verbose);
 		
 		## THIS CODE USES GEOMETRIC MULTIGRID - RAP style.
-		MGsetup(ShiftedHT,param.helmParam.Mesh,param.MG,TYPE,nrhs,param.verbose);
+		MGsetup(ShiftedHT,param.helmParam.Mesh,param.MG,nrhs,param.verbose);
 	end
 
 	if (doTranspose != param.MG.doTranspose)
 		transposeHierarchy(param.MG);
 	end
 	
-	adjustMemoryForNumRHS(param.MG,TYPE,size(B,2),param.verbose)
+	adjustMemoryForNumRHS(param.MG,size(B,2),param.verbose)
 	BLAS.set_num_threads(param.MG.numCores);
 	ShiftedHT = param.MG.As[1];
 	Az = param.MG.memCycle[1].b;

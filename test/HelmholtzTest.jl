@@ -1,8 +1,7 @@
 using jInv.Mesh;
 using Helmholtz
-#import EikonalInv.expandModelNearest
-#import EikonalInv.addAbsorbingLayer
-const plotting = false;
+
+const plotting = true;
 if plotting
 	using PyPlot;
 	close("all")
@@ -11,7 +10,7 @@ end
 include("My_sub2ind.jl");
 
 # m = readdlm("SEGmodel2Dsalt.dat"); m = m';
-m = ones(256,128);
+m = ones(257,129);
 m = m*1e-3;
 Minv = getRegularMesh([0.0,13.5,0.0,4.2],collect(size(m)) .- 1);
 
@@ -24,7 +23,7 @@ if plotting
 	figure();
 	imshow(1.0./sqrt.(Matrix(m')))
 end
-f = 1.5;
+f = 1.0;
 w = 2*pi*f
 
 maxOmega = getMaximalFrequency(m,Minv);
