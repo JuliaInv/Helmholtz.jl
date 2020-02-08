@@ -62,7 +62,7 @@ relaxPost   = 2;
 cycleType   ='W';
 coarseSolveType = "NoMUMPS";
 
-MG = getMGparam(levels,numCores,maxIter,relativeTol,relaxType,relaxParam,
+MG = getMGparam(ComplexF64,Int64,levels,numCores,maxIter,relativeTol,relaxType,relaxParam,
 				relaxPre,relaxPost,cycleType,coarseSolveType,0.5,0.0)
 
 
@@ -111,7 +111,7 @@ end
 
 ################## WITHOUT THE COARSEST GRID SOL ########################
 # coarseSolveType = "DDNodal";
-# MG = getMGparam(levels,numCores,maxIter,relativeTol,relaxType,relaxParam,
+# MG = getMGparam(ComplexF64,Int64,levels,numCores,maxIter,relativeTol,relaxType,relaxParam,
 				# relaxPre,relaxPost,cycleType,coarseSolveType,0.5,0.0)
 # Ainv = getShiftedLaplacianMultigridSolver(Hparam, MG,shift,"BiCGSTAB",0,true);
 
@@ -122,7 +122,7 @@ end
 
 println("SOLVING MULTIPLE RHSs")
 coarseSolveType = "Julia";
-MG = getMGparam(levels,numCores,maxIter,relativeTol,relaxType,relaxParam,
+MG = getMGparam(ComplexF64,Int64,levels,numCores,maxIter,relativeTol,relaxType,relaxParam,
 				relaxPre,relaxPost,cycleType,coarseSolveType,0.5,0.0)
 Ainv = getShiftedLaplacianMultigridSolver(Hparam, MG,shift,"BiCGSTAB",0,true);
 nrhs = 2;
@@ -132,7 +132,7 @@ Ainv.helmParam = Hparam;
 x = solveLinearSystem(sparse(SH'),b,Ainv)[1];
 println(norm(H*x .- b)/norm(b))
 
-MG = getMGparam(levels,numCores,maxIter,relativeTol,relaxType,relaxParam,relaxPre,relaxPost,cycleType,coarseSolveType);
+MG = getMGparam(ComplexF64,Int64,levels,numCores,maxIter,relativeTol,relaxType,relaxParam,relaxPre,relaxPost,cycleType,coarseSolveType);
 MG.relaxType = "Jac-GMRES";
 MG.cycleType = 'K';
 Ainv = getShiftedLaplacianMultigridSolver(Hparam, MG,shift,"GMRES",5,true);

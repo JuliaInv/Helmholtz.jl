@@ -1,7 +1,7 @@
 using jInv.Mesh;
 using Helmholtz
 
-const plotting = true;
+const plotting = false;
 if plotting
 	using PyPlot;
 	close("all")
