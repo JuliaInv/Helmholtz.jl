@@ -14,9 +14,9 @@ gamma - True attenuation parameter, corresponding to the time domain equation:  
 function GetHelmholtzOperator(Msh::RegularMesh, mNodal::Array{Float64}, omega::Union{Float64,ComplexF64}, gamma::Array,
 									NeumannAtFirstDim::Bool,ABLpad::Array{Int64},ABLamp::Float64,Sommerfeld::Bool)
 if gamma == []
-	gamma = getABL(Msh,NeumannAtFirstDim,ABLpad,ABLamp);
+	gamma = getABL(Msh.n.+1,NeumannAtFirstDim,ABLpad,ABLamp);
 else
-	gamma += getABL(Msh,NeumannAtFirstDim,ABLpad,ABLamp);
+	gamma += getABL(Msh.n.+1,NeumannAtFirstDim,ABLpad,ABLamp);
 end
 H = GetHelmholtzOperator(Msh, mNodal, omega, gamma, NeumannAtFirstDim,Sommerfeld);
 return H,gamma
@@ -64,13 +64,11 @@ end
 return Hfun;
 end
 
-function getABL(Msh::RegularMesh,NeumannAtFirstDim::Bool,ABLpad::Array{Int64},ABLamp::Float64)
-  h = Msh.h;
-  n = Msh.n .+ 1;
+function getABL(n::Array{Int64},NeumannAtFirstDim::Bool,ABLpad::Array{Int64},ABLamp::Float64)
   pad = ABLpad;
   ntup = tuple(n...);
   
-  if Msh.dim==2
+  if length(n)==2
 	# x1 = linspace(-1,1,n[1]);
 	# x2 = linspace(0,1,n[2]);
 	# X1,X2 = ndgrid(x1,x2);

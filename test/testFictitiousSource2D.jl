@@ -19,7 +19,7 @@ function fictitiousSourceTest2D(u,m,w,rhs)
       M  = refineMesh(M)
   	  xn = getNodalGrid(M)
 	  
-	  gamma = getABL(M,true,5*ones(Int64,M.dim),0.1);
+	  gamma = getABL(M.n.+1,true,5*ones(Int64,M.dim),0.1);
 
   	  uk = u(xn[:,1],xn[:,2])
       mk = m(xn[:,1],xn[:,2]);

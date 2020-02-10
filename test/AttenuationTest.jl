@@ -34,7 +34,7 @@ alpha = 0.5*2*pi;
 maxOmega = getMaximalFrequency(m,Minv);
 ABLamp = maxOmega;
 
-gamma = getABL(Minv,false,[pad,pad],ABLamp);
+gamma = getABL(n,false,[pad,pad],ABLamp);
 
 
 H = GetHelmholtzOperator(Minv, m, w, gamma.+alpha, false,false);
