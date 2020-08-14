@@ -7,7 +7,7 @@ return m;
 end
 
 function getInvLinearModel(top,bottom,n)
-	return getLinearModel(1./(top^2),1./(bottom^2),n);;
+	return getLinearModel(1.0./(top^2),1.0./(bottom^2),n);;
 end
 
 
@@ -27,7 +27,7 @@ function getLinearModel(top,bottom,n)
 end
 
 function getWedgeModel(n::Array{Int64});
-h = 1./(n-1);
+h = 1.0./(n-1);
 x = linspace(0.0,1.0,n[1]);
 y = linspace(0.0,1.0,n[2]);
 
@@ -39,14 +39,14 @@ return Z.^2,getRegularMesh([0.0,1.0,0.0,1.0],n-1);
 end
 
 function waveGuideModel(n::Array{Int64})
-h = 1./(n-1);
+h = 1.0./(n-1);
 x = linspace(0.0,1.0,n[1]);
 y = linspace(0.0,1.0,n[2]);
 
 X = x*ones(Float64,n[2])';
 Y = ones(Float64,n[1])*y';
 Z = 1.25*(1-0.4*exp.(-32*abs(X - 0.5).^2));
-return 1./(Z.^2),getRegularMesh([0.0,1.0,0.0,1.0],n-1);
+return 1.0./(Z.^2),getRegularMesh([0.0,1.0,0.0,1.0],n-1);
 end
 
 function getSmoothGaussianMedium(n::Array{Int64,1},h::Array{Float64,1})

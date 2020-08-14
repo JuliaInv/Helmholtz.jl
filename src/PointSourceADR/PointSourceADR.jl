@@ -1,9 +1,11 @@
 module PointSourceADR
 
 using FactoredEikonalFastMarching;
-using ForwardHelmholtz;
+using Helmholtz;
 using jInv.Mesh;
 using Multigrid;
+using LinearAlgebra
+using SparseArrays
 
 using jInv.LinearSolvers
 import jInv.Utils.clear!
@@ -14,7 +16,7 @@ import jInv.LinearSolvers.solveLinearSystem
 export getHelmholtzADR,rescaleMatrix,getADRcoefficients,restrictADRParam,ADRparam,getADRparam
 
 
-type ADRparam
+mutable struct ADRparam
 	Minv
 	gamma
 	m
@@ -124,13 +126,13 @@ end
 
 
 function getHelmholtzADR(central::Bool, Mesh::RegularMesh, mNodal::Array{Float64}, omega::Float64, gamma::Array,
-									NeumannAtFirstDim::Bool,src::Array{Int64},Sommerfeld::Bool,single::Bool = true)
+									NeumannAtFirstDim::Bool,src::Array{Int64},Sommerfeld::Bool,single::Bool = false)
 T,G,LT = getADRcoefficients(Mesh, mNodal,src);
 return getHelmholtzADR(central, Mesh, mNodal,omega, gamma,T,G,LT,NeumannAtFirstDim,src,Sommerfeld,single);
 end			
 									
 function getHelmholtzADR(central::Bool, Mesh::RegularMesh, mNodal::Array{Float64},omega::Float64, gamma::Array,T,G,LT,
-									NeumannAtFirstDim::Bool,src::Array{Int64},Sommerfeld::Bool,single::Bool = true)
+									NeumannAtFirstDim::Bool,src::Array{Int64},Sommerfeld::Bool,single::Bool = false)
 ## central = true : central + first
 ## central = false : upwind + 1st.
 									
@@ -142,7 +144,7 @@ function getHelmholtzADR(central::Bool, Mesh::RegularMesh, mNodal::Array{Float64
 		# end
 	# end
 # end
-n_nodes = Mesh.n+1;
+n_nodes = Mesh.n.+1;
 					
 N = prod(n_nodes);
 bcTauGrad = spzeros(N,N);
@@ -157,40 +159,43 @@ OPmap = zeros(Int8,n_tup);
 if Mesh.dim==2
 	# Dx1_long,Dx2_long = getNodalLongDiffGradientMatrixNeumann(Mesh);
 	# bcTauGrad = getNeumannFromTauForGradDotGradTau(omega,G);
+	# println(size(G[1]))
+	# println(size(G[2]))
+	# println(size(mNodal))
 	
-	REAC_EIK = (omega^2)*(G[1].^2 + G[2].^2 - mNodal[:]);
+	REAC_EIK = (omega^2)*(G[1].^2 + G[2].^2 - mNodal);
 	src_cs = loc2cs(src,n_nodes);
 	REAC_EIK[src_cs] = 0.0;
 	
 	if central == false
 		Dx1_long = 0.0; Dx2_long = 0.0;
-		OPmap[:] = 2;
+		OPmap[:] .= 2;
 		OPmap[max(src[1]-1,1):min(src[1]+1,n_nodes[1]),max(src[2]-1,1):min(src[2]+1,n_nodes[2])] = 0;
 		ADV2 = 1im*2.0*omega*generateSecondOrderUpwindAdvection(OPmap,G,h,n_nodes);
 	else
-		OPmap[:] = 0;
+		OPmap[:] .= 0;
 		# ADV2 = 1im*2.0*omega*(G[1].*Dx1_long + G[2].*Dx2_long);
 		Dx1_long = 0.0; Dx2_long = 0.0;
 		ADV2 = 1im*2.0*omega*generateSecondOrderUpwindAdvection(OPmap,G,h,n_nodes);
 	end
-	OPmap[:] = 1;
+	OPmap[:] .= 1;
 	# OPmap[max(src[1]-1,1):min(src[1]+1,n_nodes[1]),max(src[2]-1,1):min(src[2]+1,n_nodes[2])] = 0;
 else
 	# Dx1_long,Dx2_long = getNodalLongDiffGradientMatrixNeumann(Mesh);
 	# bcTauGrad = getNeumannFromTauForGradDotGradTau(omega,G);
 	
-	REAC_EIK = (omega^2)*(G[1].^2 + G[2].^2 + G[3].^2 - mNodal[:]);
+	REAC_EIK = (omega^2)*(G[1].^2 + G[2].^2 + G[3].^2 - mNodal);
 	src_cs = loc2cs3D(src,n_nodes);
 	REAC_EIK[src_cs] = 0.0;
 	# REAC_EIK[:] = 0.0;
 	if central == false
 		Dx1_long = 0.0; Dx2_long = 0.0;Dx3_long = 0.0;
-		OPmap[:] = 2;
+		OPmap[:] .= 2;
 		OPmap[max(src[1]-1,1):min(src[1]+1,n_nodes[1]),max(src[2]-1,1):min(src[2]+1,n_nodes[2]),max(src[3]-1,1):min(src[3]+1,n_nodes[3])] = 0;
 		ADV2 = 1im*2.0*omega*generateSecondOrderUpwindAdvection(OPmap,G,h,n_nodes);
 		
 	else
-		OPmap[:] = 0;
+		OPmap[:] .= 0;
 		
 		# ADV2 = 1im*2.0*omega*(G[1].*Dx1_long + G[2].*Dx2_long + G[3].*Dx3_long);
 		Dx1_long = 0.0; Dx2_long = 0.0;Dx3_long = 0.0;
@@ -200,7 +205,7 @@ else
 		
 	end
 	
-	OPmap[:] = 1;
+	OPmap[:] .= 1;
 	# OPmap[max(src[1]-1,1):min(src[1]+1,n_nodes[1]),max(src[2]-1,1):min(src[2]+1,n_nodes[2]),max(src[3]-1,1):min(src[3]+1,n_nodes[3])] = 0;
 end
 
@@ -211,7 +216,7 @@ end
 # NA = LT[:].*getNodalAveragingMatrix(Mesh)
 # REAC = v1 + 1im*omega*NA;
 bcTauLap = getNeumannFromTauForLap(omega,G,h,n_tup);
-REAC = spdiagm(REAC_EIK + 1im*omega*(LT[:]+gamma[:].*mNodal[:]) -  Som[:]);
+REAC = spdiagm(0=>(REAC_EIK[:] + 1im*omega*(LT[:]+gamma[:].*mNodal[:]) -  Som[:]));
 
 ##########################################################################################
 #### backup code for no laplacian of tau #################################################
@@ -227,12 +232,12 @@ REAC = spdiagm(REAC_EIK + 1im*omega*(LT[:]+gamma[:].*mNodal[:]) -  Som[:]);
 ##########################################################################################
 	
 	if single 
-		ADV2 = convert(SparseMatrixCSC{Complex64,Int32},ADV2);
+		ADV2 = convert(SparseMatrixCSC{ComplexF32,Int32},ADV2);
 	end
-	ADRtemp = ForwardHelmholtz.getNodalLaplacianMatrix(Mesh) + bcTauLap + REAC + bcTauGrad;REAC = 0;bcTauLap = 0;
+	ADRtemp = Helmholtz.getNodalLaplacianMatrix(Mesh) + bcTauLap + REAC + bcTauGrad;REAC = 0;bcTauLap = 0;
 	
 	if single 
-	 ADRtemp = convert(SparseMatrixCSC{Complex64,Int32},ADRtemp);
+	 ADRtemp = convert(SparseMatrixCSC{ComplexF32,Int32},ADRtemp);
 	end
 	ADR2 = ADRtemp + ADV2;ADV2 = 0;
 	# if single 
@@ -240,7 +245,7 @@ REAC = spdiagm(REAC_EIK + 1im*omega*(LT[:]+gamma[:].*mNodal[:]) -  Som[:]);
 	# end
 	ADV1 = 1im*2.0*omega*generateSecondOrderUpwindAdvection(OPmap,G,h,n_nodes);
 	if single 
-	 ADV1 = convert(SparseMatrixCSC{Complex64,Int32},ADV1);
+	 ADV1 = convert(SparseMatrixCSC{ComplexF32,Int32},ADV1);
 	end
 	ADR1 = ADRtemp + ADV1; ADRtemp = 0;
 	return ADR2,ADR1,T;
@@ -270,8 +275,8 @@ end
 
 function getNeumannFromTauForLap(omega::Float64,G::Array{Array{Float64},1},h::Array{Float64},n_tup)
 if length(G)==2
-	bcTau1 = zeros(Complex128,n_tup);
-	bcTau2 = zeros(Complex128,n_tup);
+	bcTau1 = zeros(ComplexF64,n_tup);
+	bcTau2 = zeros(ComplexF64,n_tup);
 	# for 1: minus because normal is pointing -x but we use exp(-i*w*tau) so its plus
 	# for end: plus because normal is pointing +x but we use exp(-i*w*tau) so its minus
 	G1 = reshape(G[1],n_tup);
@@ -280,12 +285,12 @@ if length(G)==2
 	bcTau1[end,:] += -1im*(BC()/h[1])*omega*G1[end,:];
 	bcTau2[:,1]   += +1im*(BC()/h[2])*omega*G2[:,1];
 	bcTau2[:,end] += -1im*(BC()/h[2])*omega*G2[:,end];
-	bcTau = spdiagm(vec(bcTau1 + bcTau2));
+	bcTau = spdiagm(0=>vec(bcTau1 + bcTau2));
 	return bcTau
 else
-	bcTau1 = zeros(Complex128,n_tup);
-	bcTau2 = zeros(Complex128,n_tup);
-	bcTau3 = zeros(Complex128,n_tup);
+	bcTau1 = zeros(ComplexF64,n_tup);
+	bcTau2 = zeros(ComplexF64,n_tup);
+	bcTau3 = zeros(ComplexF64,n_tup);
 	G1 = reshape(G[1],n_tup);
 	G2 = reshape(G[2],n_tup);
 	G3 = reshape(G[3],n_tup);
@@ -295,7 +300,7 @@ else
 	bcTau2[:,end,:] += -1im*(BC()/h[2])*omega*G2[:,end,:];
 	bcTau3[:,:,1]   += +1im*(BC()/h[3])*omega*G3[:,:,1];
 	bcTau3[:,:,end] += -1im*(BC()/h[3])*omega*G3[:,:,end];
-	bcTau = spdiagm(vec(bcTau1 + bcTau2 + bcTau3));
+	bcTau = spdiagm(0=>vec(bcTau1 + bcTau2 + bcTau3));
 	return bcTau
 end
 end
@@ -324,39 +329,39 @@ end
 
 function generateSecondOrderUpwindAdvection(OPmap::Array{Int8},G::Array{Array{Float64},1},h::Array{Float64,1},n::Array{Int64},flipAdvectionVector::Bool=false)
 N = prod(n);
-invh = 1./h;
+invh = 1.0./h;
 nnzidx = 1;
 dim = length(n);
 II = ones(Int32,N*(3*dim));
 JJ = ones(Int32,length(II));
 VV = zeros(Float32,length(II));
-invh = 1./h;
+invh = 1.0./h;
 idxnnz = 1;
 offset = [1;n[1];n[1]*n[2]];
 for d = 1:dim
 	OPmapd = copy(OPmap);
 	if dim==2
 		if d==1
-			OPmapd[1:2,:] = 1;
-			OPmapd[end-1:end,:] = 1;
+			OPmapd[1:2,:] .= 1;
+			OPmapd[end-1:end,:] .= 1;
 		else
-			OPmapd[:,1:2] = 1;
-			OPmapd[:,end-1:end] = 1;
+			OPmapd[:,1:2] .= 1;
+			OPmapd[:,end-1:end] .= 1;
 		end
 	else
 		if d==1
-			OPmapd[1:2,:,:] = 1;
-			OPmapd[end-1:end,:,:] = 1;
+			OPmapd[1:2,:,:] .= 1;
+			OPmapd[end-1:end,:,:] .= 1;
 		elseif d==2
-			OPmapd[:,1:2,:] = 1;
-			OPmapd[:,end-1:end,:] = 1;
+			OPmapd[:,1:2,:] .= 1;
+			OPmapd[:,end-1:end,:] .= 1;
 		else
-			OPmapd[:,:,1:2] = 1;
-			OPmapd[:,:,end-1:end] = 1;
+			OPmapd[:,:,1:2] .= 1;
+			OPmapd[:,:,end-1:end] .= 1;
 		end
 	end
 	for ii = 1:N
-		@inbounds II[idxnnz:(idxnnz+3 - 1)] = ii;
+		@inbounds II[idxnnz:(idxnnz+3 - 1)] .= ii;
 		if flipAdvectionVector==false
 			updateUpwindStencil(G[d][ii],OPmapd[ii],JJ,VV,invh[d],ii,offset[d],idxnnz);
 		else
@@ -365,8 +370,8 @@ for d = 1:dim
 		idxnnz += 3;
 	end
 end
-JJ[JJ.<1] = 1;
-JJ[JJ.>N] = 1;
+JJ[JJ.<1] .= 1;
+JJ[JJ.>N] .= 1;
 ADV = sparse(II,JJ,VV,N,N);
 return ADV;
 end
