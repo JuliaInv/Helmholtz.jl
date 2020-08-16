@@ -1,6 +1,7 @@
 using jInv.Mesh;
 using Helmholtz
 using Helmholtz.PointSourceADR
+using Multigrid
 
 plotting = true;
 
@@ -13,7 +14,7 @@ include("getModels.jl");
 
 NeumannAtFirstDim = false;
 Sommerfeld = true;
-gamma_val = 0.00001*2*pi;
+gamma_val = 0.01;
 
 model = "const";
 domain = [0.0,1.0,0.0,1.0];
@@ -45,7 +46,7 @@ end
 
 
 n_tup = tuple((n_cells.+1)...);
-q_coarse = zeros(Complex,n_tup)
+q_coarse = zeros(ComplexF64,n_tup)
 src2 = div.(n_cells,2).+1;
 q_coarse[src2[1],src2[2]] = 1/(Minv.h[2]^2);
 
@@ -64,7 +65,7 @@ ABLamp = maxOmega;
 m = m_coarse;
 
 
-gamma = gamma_val*ones(Float32,size(m)) + getABL(Minv.n.+1,NeumannAtFirstDim,pad_cells.+1,ABLamp);
+gamma = (w*gamma_val)*ones(Float32,size(m)) + getABL(Minv.n.+1,NeumannAtFirstDim,pad_cells.+1,ABLamp);
 
 
 if plotting
@@ -88,6 +89,7 @@ G[2] = Ty;
 LT = zeros(size(X1));
 (ADR_long,ADR_short,T) = getHelmholtzADR(true,Minv, m, w, gamma,T,G,LT, NeumannAtFirstDim,[3,3],Sommerfeld);
 
+# ADR_short = 0.5*ADR_long + 0.5*ADR_short;
 
 if plotting
 	figure();
@@ -126,6 +128,35 @@ if plotting
 	imshow(reshape(real(xs),n_tup)',cmap = "jet"); title("First order upwind ADR solution");colorbar();
 end
 a = 1;
+
+
+levels      = 6;
+numCores 	= 2; 
+maxIter     = 10;
+relativeTol = 1e-10;
+relaxType   = "Jac-GMRES";
+relaxParam  = 0.7;
+relaxPre 	= 3;
+relaxPost   = 3;
+cycleType   ='W';
+coarseSolveType = "NoMUMPS";
+
+MG = getMGparam(ComplexF64,Int64,levels,numCores,maxIter,relativeTol,relaxType,relaxParam,relaxPre,relaxPost,cycleType,coarseSolveType,0.5,0.0);
+nrhs = 1;
+MGsetup(sparse(ADR_short'),Minv,MG,nrhs,true);
+
+println("****************************** Stand-alone GMG RAP for ADR 1st: ******************************")
+a = zeros(ComplexF64, size(q[:]));
+solveMG(MG,q,a,true);
+
+println("****************************** GMRES GMG RAP for ADR 1st: ******************************")
+F = getAfun(sparse(ADR_short'),zeros(eltype(q),size(q)),1)
+MG.maxOuterIter = 2;
+solveGMRES_MG(F,MG,q,a,true,10,true);
+
+
+
+z = 1;
 
 
 # ADRparam = getADRparam(Minv,gamma,m,w,T,G,LT,src,NeumannAtFirstDim,true,M);
