@@ -7,7 +7,6 @@ if plotting
 	close("all")
 end
 
-include("My_sub2ind.jl");
 
 # m = readdlm("SEGmodel2Dsalt.dat"); m = m';
 m = ones(257,129);
@@ -34,15 +33,15 @@ println(w*Minv.h*sqrt(maximum(m)));
 pad = pad*ones(Int64,Minv.dim);
 H = GetHelmholtzOperator(Minv,m,w,ones(size(m))*0.01,true,pad,ABLamp,true)[1];
 SH = H + GetHelmholtzShiftOP(m, w,0.1);
-n = Minv.n.+1; n_tup = tuple(n...);
-src = div.(n,2);
-src[end] = 1;
-q = zeros(ComplexF64,n_tup)
-q[My_sub2ind(n,src)] = 1/(Minv.h[1]^2);
+
+n_nodes = Minv.n.+1;
+nnodes_tup = tuple(n_nodes...);
+
+q,src = getAcousticPointSource(Minv,ComplexF64);
 
 s = H\q[:];
-s = real(reshape(s,n_tup));
-s[My_sub2ind(n,src)] = 0.0;
+s = real(reshape(s,nnodes_tup));
+s[loc2cs(n_nodes,src)] = 0.0;
 
 if plotting
 	figure();
@@ -51,8 +50,8 @@ end
 
 
 sh = SH\q[:];
-sh = real(reshape(sh,n_tup));
-sh[My_sub2ind(n,src)]= 0.0;
+sh = real(reshape(sh,nnodes_tup));
+sh[loc2cs(n_nodes,src)]= 0.0;
 
 if plotting
 	figure();

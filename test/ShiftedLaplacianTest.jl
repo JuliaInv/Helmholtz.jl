@@ -4,8 +4,6 @@ using Multigrid
 using LinearAlgebra
 using SparseArrays
 
-include("My_sub2ind.jl");
-
 const plotting = false;
 
 if plotting
@@ -44,11 +42,11 @@ SH = H .+ GetHelmholtzShiftOP(m, real(w),shift[1]);
 
 
 
-n = Minv.n .+1 ; n_tup = tuple(n...);
-src = div.(n,2);
-src[end] = 1;
-q = zeros(Complex,n_tup)
-q[My_sub2ind(n,src)] = 1.0/(Minv.h[1]^2);
+# n = Minv.n .+1 ; n_tup = tuple(n...);
+# src = div.(n,2);
+# src[end] = 1;
+# q = zeros(ComplexF64,n_tup)
+# q[loc2cs(n,src)] = 1.0/(Minv.h[1]^2);
 
 levels      = 3;
 numCores 	= 2; 
@@ -72,7 +70,7 @@ n = Minv.n .+ 1; n_tup = tuple(n...);
 src = div.(n,2);
 src[end] = 1;
 q = zeros(ComplexF64,n_tup)
-q[My_sub2ind(n,src)] = 1.0/(Minv.h[1]^2);
+q[loc2cs(n,src)] = 1.0/(Minv.h[1]^2);
 ###############################################
 b = q[:];
 

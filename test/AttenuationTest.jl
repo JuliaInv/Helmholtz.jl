@@ -7,8 +7,6 @@ if plotting
 	close("all");
 end
 
-include("My_sub2ind.jl");
-
 n_tup = (512,512)
 m = ones(n_tup);
 n = collect(n_tup)
@@ -22,7 +20,7 @@ w = 2*pi*f
 
 src = div.(n,2);
 q = zeros(ComplexF64,n_tup)
-q[My_sub2ind(n,src)] = 1.0./(Minv.h[1]^2);
+q[loc2cs(n,src)] = 1.0./(Minv.h[1]^2);
 
 
 r = getAnalytic2DeikonalSolution(n,Minv.h,src)[1];

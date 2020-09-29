@@ -1,7 +1,7 @@
 name = "Helmholtz"
 uuid = "e64c32b0-b297-11e9-3d04-db45b5588c0d"
 authors = ["Eran Treister <erantreister@gmail.com>"]
-version = "0.1.0"
+version = "0.2.0"
 
 [deps]
 FactoredEikonalFastMarching = "a21af1b0-b122-11e9-3f46-a5fb68b7f21f"
