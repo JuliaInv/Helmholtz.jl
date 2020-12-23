@@ -174,9 +174,9 @@ if Mesh.dim==2
 		ADV2 = 1im*2.0*omega*generateSecondOrderUpwindAdvection(OPmap,G,h,n_nodes);
 	else
 		OPmap[:] .= 0;
-		ADV2 = 1im*2.0*omega*(G[1].*Dx1_long + G[2].*Dx2_long);
+		# ADV2 = 1im*2.0*omega*(G[1].*Dx1_long + G[2].*Dx2_long);
 		Dx1_long = 0.0; Dx2_long = 0.0;
-		# ADV2 = 1im*2.0*omega*generateSecondOrderUpwindAdvection(OPmap,G,h,n_nodes);
+		ADV2 = 1im*2.0*omega*generateSecondOrderUpwindAdvection(OPmap,G,h,n_nodes);
 	end
 	OPmap[:] .= 1;
 	# OPmap[max(src[1]-1,1):min(src[1]+1,n_nodes[1]),max(src[2]-1,1):min(src[2]+1,n_nodes[2])] = 0;
