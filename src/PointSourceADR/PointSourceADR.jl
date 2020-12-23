@@ -164,7 +164,7 @@ if Mesh.dim==2
 	# println(size(mNodal))
 	
 	REAC_EIK = (omega^2)*(G[1].^2 + G[2].^2 - mNodal);
-	src_cs = loc2cs(src,n_nodes);
+	src_cs = Helmholtz.loc2cs(src,n_nodes);
 	REAC_EIK[src_cs] = 0.0;
 	
 	if central == false
