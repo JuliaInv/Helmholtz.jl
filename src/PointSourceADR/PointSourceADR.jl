@@ -199,8 +199,8 @@ else
 		
 		# ADV2 = 1im*2.0*omega*(G[1].*Dx1_long + G[2].*Dx2_long + G[3].*Dx3_long);
 		Dx1_long = 0.0; Dx2_long = 0.0;Dx3_long = 0.0;
-		ADV2 = 1im*2.0*omega*generateSecondOrderUpwindAdvection(OPmap,G,h,n_nodes);
-		# ADV2 = 1im*1.0*omega*(G1.*Dx1_long + G2.*Dx2_long + G3.*Dx3_long + Dx1_long*spdiagm(G1) + Dx2_long*spdiagm(G2) + Dx3_long*spdiagm(G3)); LT[:] = 0.0;
+		# ADV2 = 1im*2.0*omega*generateSecondOrderUpwindAdvection(OPmap,G,h,n_nodes);
+		ADV2 = 1im*1.0*omega*(G1.*Dx1_long + G2.*Dx2_long + G3.*Dx3_long + Dx1_long*spdiagm(G1) + Dx2_long*spdiagm(G2) + Dx3_long*spdiagm(G3)); LT[:] = 0.0;
 		
 		
 	end
