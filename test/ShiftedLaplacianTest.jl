@@ -37,7 +37,7 @@ ABLamp = maxOmega;
 Sommerfeld = true;
 NeumannAtFirstDim = true;
 H,gamma = GetHelmholtzOperator(Minv,m,w,w*ones(size(m))*0.01,NeumannAtFirstDim,pad,ABLamp,Sommerfeld);
-shift = [0.2;0.2;0.2];
+shift = [0.2;0.2;0.2]./10.0;
 SH = H .+ GetHelmholtzShiftOP(m, real(w),shift[1]);
 
 
@@ -48,7 +48,7 @@ SH = H .+ GetHelmholtzShiftOP(m, real(w),shift[1]);
 # q = zeros(ComplexF64,n_tup)
 # q[loc2cs(n,src)] = 1.0/(Minv.h[1]^2);
 
-levels      = 3;
+levels      = 2;
 numCores 	= 2; 
 maxIter     = 30;
 relativeTol = 1e-6;
@@ -75,10 +75,14 @@ q[loc2cs(n,src)] = 1.0/(Minv.h[1]^2);
 b = q[:];
 
 Hparam = HelmholtzParam(Minv,gamma,vec(m),w,NeumannAtFirstDim,Sommerfeld);
-Ainv = getShiftedLaplacianMultigridSolver(Hparam, MG,shift,"GMRES",5,true);
+Ainv = getShiftedLaplacianMultigridSolver(Hparam, MG,shift,"GMRES",20,true);
+
+
 Ainv = copySolver(Ainv);
 
 x = solveLinearSystem(sparse(SH'),b,Ainv)[1];
+println(norm(H*x - b)/norm(b))
+
 MG.relaxType = "Jac";
 MG.cycleType = 'W';
 Ainv = getShiftedLaplacianMultigridSolver(Hparam, MG,shift,"BiCGSTAB",0,true);

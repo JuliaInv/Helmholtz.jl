@@ -29,6 +29,7 @@ function getShiftedLaplacianMultigridSolver(helmParam::HelmholtzParam, MG::MGpar
 	return getShiftedLaplacianMultigridSolver(helmParam,MG,ones(MG.levels)*shift,Krylov,inner,verbose);
 end
 
+import jInv.LinearSolvers.solveLinearSystem;
 function solveLinearSystem(ShiftedHT,B,param::ShiftedLaplacianMultigridSolver,doTranspose::Int64=0)
 	if size(B,2) == 1
 		B = vec(B);

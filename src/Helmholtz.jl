@@ -40,6 +40,6 @@ include("PlainNodalLaplacian.jl");
 include("ShiftedLaplacianMultigridSolver.jl");
 include("PointSourceADR/PointSourceADR.jl");
 include("getPointSource.jl")
-#include("Elastic/ElasticHelmholtz.jl");
+include("Elastic/ElasticHelmholtz.jl");
 
 end # module

@@ -1,7 +1,7 @@
-export getAcousticPointSource,loc2cs;
+export getAcousticPointSource,loc2cs,getElasticPointSource,getElasticPointSourceMid;
 
 
-function getElasticRhs(Minv,TYPE)
+function getElasticPointSource(Minv,TYPE)
 ## Generating the right hand side
 if Minv.dim==3
 	qx = zeros(TYPE,tuple(Minv.n + [1; 0; 0]...));
@@ -18,6 +18,7 @@ else
 	qx = zeros(TYPE,tuple(Minv.n + [1; 0]...))
 	qy = zeros(TYPE,tuple(Minv.n + [0; 1]...))
 	qy[div(Minv.n[1],2),1] = -2.0./(Minv.h[1]);
+	#qy[div(Minv.n[1],2),2] = -1.0./(Minv.h[1]);
 	qx[div(Minv.n[1],2),1] = -1.0./(Minv.h[2]);
 	qx[div(Minv.n[1],2)+1,1] = +1.0./(Minv.h[2]);
 	# qy[div(Minv.n[1],2),div(Minv.n[2],2)] = -2./(Minv.h[1]);
@@ -27,6 +28,37 @@ else
 end
 return q;
 end
+
+
+function getElasticPointSourceMid(Minv,TYPE)
+## Generating the right hand side
+if Minv.dim==3
+	qx = zeros(TYPE,tuple(Minv.n + [1; 0; 0]...));
+	qy = zeros(TYPE,tuple(Minv.n + [0; 1; 0]...));
+	qz = zeros(TYPE,tuple(Minv.n + [0; 0; 1]...));
+	src = [div(Minv.n[1],2),div(Minv.n[2],2),1];
+	qz[src[1],src[2],1] = -2.0./(Minv.h[1]);
+	qx[src[1],src[2],1] = -1.0./(Minv.h[3]);
+	qx[src[1]+1,src[2],1] = +1.0./(Minv.h[3]);
+	qy[src[1],src[2],1] = -1.0./(Minv.h[3]);
+	qy[src[1],src[2]+1,1] = +1.0./(Minv.h[3]);
+	q = vec([qx[:]; qy[:]; qz[:];]);
+else
+	qx = zeros(TYPE,tuple(Minv.n + [1; 0]...))
+	qy = zeros(TYPE,tuple(Minv.n + [0; 1]...))
+	qy[div(Minv.n[1],2),div(Minv.n[2],2)] = 1.0./(Minv.h[1]);
+	qy[div(Minv.n[1],2),div(Minv.n[2],2)+1] = -1.0./(Minv.h[1]);
+	qx[div(Minv.n[1],2),div(Minv.n[2],2)] = 1.0./(Minv.h[2]);
+	qx[div(Minv.n[1],2)+1,div(Minv.n[2],2)] = -1.0./(Minv.h[2]);
+	# qy[div(Minv.n[1],2),div(Minv.n[2],2)] = -2./(Minv.h[1]);
+	# qx[div(Minv.n[1],2),div(Minv.n[2],2)] = -1./(Minv.h[2]);
+	# qx[div(Minv.n[1],2)+1,div(Minv.n[2],2)] = +1./(Minv.h[2]);	
+	q = vec([qx[:]; qy[:]])
+end
+return q;
+end
+
+
 
 
 function getTopPointSrc(Minv)

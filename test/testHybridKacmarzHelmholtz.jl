@@ -42,8 +42,8 @@ N = size(SHT,2);
 
 HKparam = getHybridKaczmarz(ComplexF64,Int64, SHT,Mr,[4,4], getNodalIndicesOfCell,0.95,numCores,innerKatzIter);
 prec = getHybridKaczmarzPrecond(HKparam,SHT);
-x[:] .= FGMRES_relaxation(SHT,q[:],x[:],inner,prec,1e-3,true,true,numCores)[1]
-println("Relative norm is: ",norm(SHT'*x[:] - q[:])./norm(q[:]))
+# x[:] .= FGMRES_relaxation(SHT,q[:],x[:],inner,prec,1e-3,true,true,numCores)[1]
+# println("Relative norm is: ",norm(SHT'*x[:] - q[:])./norm(q[:]))
 
 
 println("In float precision:")
@@ -55,5 +55,5 @@ SHT = convert(SparseMatrixCSC{ComplexF32,Int64},SHT);
 
 HKparam = getHybridKaczmarz(ComplexF32,Int64, SHT,Mr,[4,4], getNodalIndicesOfCell,0.95,numCores,innerKatzIter);
 prec = getHybridKaczmarzPrecond(HKparam,SHT);
-x[:] .= FGMRES_relaxation(SHT,q[:],x[:],inner,prec,1e-3,true,true,numCores)[1]
-println("Relative norm is: ",norm(SHT'*x[:] - q[:])./norm(q[:]))
+# x[:] .= FGMRES_relaxation(SHT,q[:],x[:],inner,prec,1e-3,true,true,numCores)[1]
+# println("Relative norm is: ",norm(SHT'*x[:] - q[:])./norm(q[:]))
