@@ -46,6 +46,49 @@ return L;
 end
 
 
+function speye(n)
+	return sparse(1.0I,n,n);
+end
+
+function ddxCN(n,h)
+# D = ddx(n), 1D derivative operator
+	I,J,V = SparseArrays.spdiagm_internal(0 => fill(-(1/h),n), 1 => fill((1/h),n)) 
+	return sparse(I, J, V, n, n+1)
+end
+
+function av3term(n::Int64,alpha=5/6)
+	t = (1-alpha)/2;
+	T = spdiagm(0=>alpha*ones(n), 1=>t*ones(n-1),-1=>t*ones(n-1));
+	T[1,1] = 1/2 + alpha/2;
+	T[end,end] = 1/2 + alpha/2;
+	return T;
+end
+
+
+function getNodalSpreadGradients(Msh,avFunc)
+	n = Msh.n;
+	h = Msh.h;
+	tmp = ddxCN(n[1],h[1]);
+	D1 = kron(speye(n[2]+1),tmp);
+	D1s = kron(avFunc(n[2]+1),tmp);
+
+	tmp = ddxCN(n[2],h[2])
+	D2 = kron(tmp,speye(n[1]+1))
+	D2s = kron(tmp,avFunc(n[1]+1))
+	return [D1;D2],[D1s;D2s];
+end
+
+function getSpreadNodalLaplacianAndMass(Mesh,beta)
+# Grad  = getNodalGradientMatrix(Msh) 
+# Lap   = Grad'*Grad
+avFunc = n -> av3term(n,beta);
+G,Gs = getNodalSpreadGradients(Mesh,avFunc);
+Lap = G'*Gs;
+n = Mesh.n;
+M = 0.5*kron(av3term(n[2]+1,beta),speye(n[1]+1)) + 0.5*kron(speye(n[2]+1),av3term(n[1]+1,beta));
+return Lap,M
+end
+
 
 ##
 ## [0  x2  0]

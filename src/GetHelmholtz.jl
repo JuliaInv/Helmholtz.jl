@@ -1,5 +1,5 @@
 
-export GetHelmholtzOperator,GetHelmholtzOperator,GetHelmholtzShiftOP,getABL,getSommerfeldBC,getHelmholtzFun,getMaximalFrequency
+export GetHelmholtzOperator,GetHelmholtzOperatorHO,GetHelmholtzShiftOP,getABL,getSommerfeldBC,getHelmholtzFun,getMaximalFrequency
 
 """
 function  GetHelmholtzOperator
@@ -11,6 +11,14 @@ omega can be real or complex for artificial attenuation.
 Artificial attenuation through a complex omega keeps the phase fixed.
 gamma - True attenuation parameter, corresponding to the time domain equation:  u_tt + gamma*ut + c^2*L*u = q
 """
+function GetHelmholtzOperator(Hparam::HelmholtzParam,orderNeumannBC::Int64 = 2)
+	H = GetHelmholtzOperator(Hparam.Mesh, Hparam.m, Hparam.omega, Hparam.gamma, Hparam.NeumannOnTop,Hparam.Sommerfeld,orderNeumannBC);
+end
+
+function GetHelmholtzOperatorHO(Hparam::HelmholtzParam)
+	H = GetHelmholtzOperatorHO(Hparam.Mesh, Hparam.m, Hparam.omega, Hparam.gamma, Hparam.NeumannOnTop,Hparam.Sommerfeld);
+end
+
 function GetHelmholtzOperator(Msh::RegularMesh, mNodal::Array{Float64}, omega::Union{Float64,ComplexF64}, gamma::Array,
 									NeumannAtFirstDim::Bool,ABLpad::Array{Int64},ABLamp::Float64,Sommerfeld::Bool,orderNeumannBC::Int64 = 2)
 if gamma == []
@@ -38,6 +46,28 @@ if Sommerfeld
 	mass -= somm[:];
 end
 H = Lap .+ sparse(Diagonal(mass));
+return H;
+end
+
+
+
+function GetHelmholtzOperatorHO(Msh::RegularMesh, mNodal::Array{Float64}, omega::Union{Float64,ComplexF64}, gamma::Array{Float64},
+							  NeumannAtFirstDim::Bool,Sommerfeld::Bool)
+# Lap   = getNodalLaplacianMatrix(Msh,orderNeumannBC);
+Lap,M = getSpreadNodalLaplacianAndMass(Msh,2/3)
+# this code computes a laplacian the long way, AND stores the gradient on Msh... So we avoid using it.
+# Grad  = getNodalGradientMatrix(Msh) 
+# Lap   = Grad'*Grad
+
+# mass = -((omega.^2).*(mNodal[:]).*(1.0.+1im*gamma[:]));
+mass = -(omega.^2).*(mNodal[:]).*(1.0.-1im*gamma[:]./real(omega));
+
+if Sommerfeld
+	# println("Adding Sommerfeld");
+	somm = getSommerfeldBC(Msh,mNodal,real(omega),NeumannAtFirstDim);
+	mass -= somm[:];
+end
+H = Lap .+ M*sparse(Diagonal(mass));
 return H;
 end
 

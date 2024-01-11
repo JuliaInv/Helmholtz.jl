@@ -11,6 +11,7 @@ if model=="linear"
 	lambda = getLinearModel(4.0,20.0,n);
 	mu     = getLinearModel(1.0,15.0,n);
 	
+	
 	# rho    = getLinearModel(1.7,2.7,n);
 	# lambda = getLinearModel(4.2,48.6,n);
 	# mu     = getLinearModel(1.75,24.0,n);
@@ -40,24 +41,40 @@ elseif model=="Marmousi"
 		error("Marmousi is only 2D");
 	end
 	domain = [0.0,17.0,0.0,3.5]; ## that's the original domain
-	model_dir = "./../../../BenchmarkModels/";
-	file = matopen(string(model_dir,"ElasticMarmousi2_single.mat")); 
-	DICT = read(file); close(file);
-	## Size of Marmousi: [13601;2801]. domain = 
-	Vs = DICT["Vs"]';
+	#model_dir = "./../../../BenchmarkModels/";
+	model_dir = "./../BenchmarkModels/";
+	# Size of Marmousi: [13601;2801]. domain = 
+	# file = matopen(string(model_dir,"ElasticMarmousi2_single.mat")); 
+	# DICT = read(file); close(file);
+	# Vs = DICT["Vs"]';
 	# println(size(Vs))
-	Vp = DICT["Vp"]';
-	rho = DICT["rho"]';
-	Vs = Vs[1:end,370:end];
-	Vp = Vp[1:end,370:end];
-	rho = rho[1:end,370:end];
+	# Vp = DICT["Vp"]';
+	# rho = DICT["rho"]';
+	# Vs = Vs[1:end,370:end];
+	# Vp = Vp[1:end,370:end];
+	# rho = rho[1:end,370:end];
+	
 	domain_data = [0.0,17.0,0.0,3.0];
-	n_data = collect(size(rho));
+	println("Reading Marmousi")
+	Vs = readdlm(string(model_dir,"MarmousiVs_small.dat"))/1000.0
+	println("1")
+	Vp = readdlm(string(model_dir,"MarmousiVp_small.dat"))/1000.0
+	println("2")
+	rho = readdlm(string(model_dir,"MarmousiRho_small.dat"))/1000.0
+	println("Finished reading Marmousi")
+	
+	n_data = collect(size(Vs));
 	M = getRegularMesh(domain_data,n_data);
 	
 	Vs = expandModelNearest(smoothModel(Vs,[],0),n_data,n);
 	Vp = expandModelNearest(smoothModel(Vp,[],0),n_data,n);
 	rho = expandModelNearest(smoothModel(rho,[],0),n_data,n);
+	
+	# writedlm(string(model_dir,"MarmousiVs_small.dat"),round.(Int16,Vs*1000.0))
+	# writedlm(string(model_dir,"MarmousiVp_small.dat"),round.(Int16,Vp*1000))
+	# writedlm(string(model_dir,"MarmousiRho_small.dat"),round.(Int16,rho*1000))
+	n_data = collect(size(Vs));
+	
 	
 	mu = rho.*Vs.^2
 	lambda = rho.*(Vp.^2 - 2*Vs.^2)
@@ -78,7 +95,7 @@ elseif model=="Marmousi"
 	# title("Poisson's ratio");	
 	# error("IM HERE")
 	# pad_down =  2^round(Int64, (0.5/3.0)*n[2]);
-	pad_down = 12;
+	pad_down = 16;
 	n_new = tuple((collect(size(Vs)) + [0;pad_down])...);
 	Vs_new = zeros(n_new);Vs_new[:,1:size(Vs,2)] = Vs;
 	Vp_new = zeros(n_new);Vp_new[:,1:size(Vs,2)] = Vp;
@@ -98,6 +115,8 @@ elseif model=="Marmousi"
 	M = getRegularMesh(domain_data,n_data);
 	# println(n_data)
 	# poisson = (lambda./(2*(lambda+mu)));	
+elseif model=="SEAM"
+
 
 elseif model=="const"
 	n_tup = tuple(n...);
@@ -112,9 +131,11 @@ elseif model=="const"
 elseif model=="Overthrust"
 	domain = [0.0,20.0,0.0,20.0,0.0,4.65];
 	model_dir = "./../../../BenchmarkModels/";
-	file = matopen(string(model_dir,"3DOverthrust801801187.mat")); 
-	DICT = read(file); close(file);
-	m = DICT["A"];DICT = 0;
+	model_dir = "./../BenchmarkModels/";
+	# file = matopen(string(model_dir,"3DOverthrust801801187.mat")); 
+	# DICT = read(file); close(file);
+	# m = DICT["A"];DICT = 0;
+	m = readdlm(string(model_dir,"3DOverthrust801801187.dat"));
 	m = m.*1e-3;
 	m = reshape(m,801,801,187);
 	m = smoothModel3(m,ceil(Int64,801/n[1]));
@@ -209,7 +230,7 @@ function expandModelNearest(m,n,ntarget)
 		for k=1:ntarget[3]
 			for j=1:ntarget[2]
 				for i=1:ntarget[1]
-					korig = convert(Int64,floor((k/ntarget[3])*n[3]));
+					korig = max(1,convert(Int64,floor((k/ntarget[3])*n[3])));
 					jorig = convert(Int64,floor((j/ntarget[2])*n[2]));
 					iorig = convert(Int64,floor((i/ntarget[1])*n[1]));
 					mnew[i,j,k] = m[iorig,jorig,korig];

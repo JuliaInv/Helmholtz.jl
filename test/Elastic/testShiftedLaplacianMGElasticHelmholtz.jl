@@ -31,7 +31,7 @@ gamma .+= 0.01*w;
 
 reformulated = true;
 Hparam 		= ElasticHelmholtzParam(Minv,w,lambda,rho,mu,gamma,true,reformulated)
-shift 		= 0.5;
+shift 		= 0.2;
 ShiftT 		= GetElasticHelmholtzShiftOP(Hparam,shift)';
 ShiftT       = convert(SparseMatrixCSC{TYPE,spIndType},ShiftT);
 
@@ -40,11 +40,11 @@ q = [q;zeros(eltype(q),prod(Minv.n))];
 numCores 	= 2; 
 maxIter     = 20;
 relativeTol = 1e-6;
-cycleType   ='K';
+cycleType   ='W';
 levels      = 3;
 # relaxType   = "EconVankaFaces"; shift = 0.5; # here better to use shift = 0.5.
 relaxType   = "VankaFaces";
-relaxParam  = [0.5,0.3,0.3,0.2,0.0];
+relaxParam  = [0.65,0.5,0.3,0.2,0.0];
 relaxParam = relaxParam[1:levels];
 relaxPre 	= 1;
 relaxPost   = 1;

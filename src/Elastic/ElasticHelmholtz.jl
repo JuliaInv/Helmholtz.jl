@@ -16,19 +16,17 @@ export ElasticHelmholtzParam
 mutable struct ElasticHelmholtzParam
 	Mesh   			:: RegularMesh;
 	omega			:: Float64
-	lambda          :: Array{Float64};
-	rho				:: Array{Float64}
-	mu				:: Array{Float64}
-	gamma  			:: Array{Float64};
+	lambda          :: Union{Array{Float32},Array{Float64}};
+	rho				:: Union{Array{Float32},Array{Float64}}
+	mu				:: Union{Array{Float32},Array{Float64}}
+	gamma  			:: Union{Array{Float32},Array{Float64}};
 	NeumannOnTop	:: Bool
 	MixedFormulation:: Bool
 end
 
 
-
-
-
 #include("elasticFaces.jl")
+include("elasticFaces2.jl")
 include("GetElasticHelmholtz.jl")
 
 end

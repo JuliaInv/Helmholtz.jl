@@ -1,4 +1,4 @@
-export getAcousticPointSource,loc2cs,getElasticPointSource,getElasticPointSourceMid;
+export getAcousticPointSource,loc2cs,getElasticPointSource,getElasticPointSourceMid,getMidPointSrc;
 
 
 function getElasticPointSource(Minv,TYPE)
@@ -36,6 +36,7 @@ if Minv.dim==3
 	qx = zeros(TYPE,tuple(Minv.n + [1; 0; 0]...));
 	qy = zeros(TYPE,tuple(Minv.n + [0; 1; 0]...));
 	qz = zeros(TYPE,tuple(Minv.n + [0; 0; 1]...));
+	error("getElasticPointSourceMid: Correct below:")
 	src = [div(Minv.n[1],2),div(Minv.n[2],2),1];
 	qz[src[1],src[2],1] = -2.0./(Minv.h[1]);
 	qx[src[1],src[2],1] = -1.0./(Minv.h[3]);
@@ -46,13 +47,11 @@ if Minv.dim==3
 else
 	qx = zeros(TYPE,tuple(Minv.n + [1; 0]...))
 	qy = zeros(TYPE,tuple(Minv.n + [0; 1]...))
-	qy[div(Minv.n[1],2),div(Minv.n[2],2)] = 1.0./(Minv.h[1]);
-	qy[div(Minv.n[1],2),div(Minv.n[2],2)+1] = -1.0./(Minv.h[1]);
-	qx[div(Minv.n[1],2),div(Minv.n[2],2)] = 1.0./(Minv.h[2]);
-	qx[div(Minv.n[1],2)+1,div(Minv.n[2],2)] = -1.0./(Minv.h[2]);
-	# qy[div(Minv.n[1],2),div(Minv.n[2],2)] = -2./(Minv.h[1]);
-	# qx[div(Minv.n[1],2),div(Minv.n[2],2)] = -1./(Minv.h[2]);
-	# qx[div(Minv.n[1],2)+1,div(Minv.n[2],2)] = +1./(Minv.h[2]);	
+	n_mid = div.(Minv.n,2);
+	qy[n_mid[1],n_mid[2]] = -1.0./(Minv.h[1]^2);
+	qy[n_mid[1],n_mid[2]+1] = 1.0./(Minv.h[1]^2);
+	qx[n_mid[1],n_mid[2]] = -1.0./(Minv.h[2]^2);
+	qx[n_mid[1]+1,n_mid[2]] = 1.0./(Minv.h[2]^2);
 	q = vec([qx[:]; qy[:]])
 end
 return q;
@@ -66,6 +65,15 @@ if Minv.dim==3
 	src = [div(Minv.n[1]+1,2);div(Minv.n[2]+1,2);1];
 else
     src = [div(Minv.n[1]+1,2);1]
+end
+return src;
+end
+
+function getMidPointSrc(Minv)
+if Minv.dim==3
+	src = [div(Minv.n[1]+1,2);div(Minv.n[2]+1,2);div(Minv.n[3]+1,2)];
+else
+    src = [div(Minv.n[1]+1,2);div(Minv.n[2]+1,2)]
 end
 return src;
 end
@@ -93,6 +101,7 @@ end
 
 
 
+
 function getAcousticPointSource(Minv,TYPE,src = getTopPointSrc(Minv))
 ## Generating the right hand side
 n_nodes = Minv.n .+ 1;
@@ -100,3 +109,4 @@ q = zeros(TYPE,tuple(n_nodes...));
 q[loc2cs(n_nodes,src)] = 1.0./(norm(Minv.h)^2);
 return q,src;
 end
+

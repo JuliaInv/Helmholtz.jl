@@ -15,8 +15,8 @@ print("sp*omega*h = ",w*maximum(Minv.h)*maximum(sp),";    ");
 println("ss*omega*h = ",w*maximum(Minv.h)*maximum(ss));
 pad = pad*ones(Int64,3);
 gamma = getCellCenteredABL(Minv,true,pad,1.0/(sum(Minv.h)/length(Minv.h)));
-#gamma .+= 0.01*pi;
-gamma .+= 0.001*pi;
+gamma .+= 0.01*pi;
+# gamma .+= 0.001*pi;
 #gamma .+= 0.005*w;
 
 Hparam 		= ElasticHelmholtzParam(Minv,w,lambda,rho,mu,gamma,true,reformulated)
