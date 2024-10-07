@@ -52,9 +52,9 @@ end
 
 
 function GetHelmholtzOperatorHO(Msh::RegularMesh, mNodal::Array{Float64}, omega::Union{Float64,ComplexF64}, gamma::Array{Float64},
-							  NeumannAtFirstDim::Bool,Sommerfeld::Bool)
+							  NeumannAtFirstDim::Bool,Sommerfeld::Bool,beta = 1.0)
 # Lap   = getNodalLaplacianMatrix(Msh,orderNeumannBC);
-Lap,M = getSpreadNodalLaplacianAndMass(Msh,2/3)
+Lap,M = getSpreadNodalLaplacianAndMass(Msh,beta)
 # this code computes a laplacian the long way, AND stores the gradient on Msh... So we avoid using it.
 # Grad  = getNodalGradientMatrix(Msh) 
 # Lap   = Grad'*Grad

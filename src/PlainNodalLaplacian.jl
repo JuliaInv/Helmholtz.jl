@@ -81,8 +81,9 @@ end
 function getSpreadNodalLaplacianAndMass(Mesh,beta)
 # Grad  = getNodalGradientMatrix(Msh) 
 # Lap   = Grad'*Grad
-avFunc = n -> av3term(n,beta);
+avFunc = n -> av3term(n,0.25);
 G,Gs = getNodalSpreadGradients(Mesh,avFunc);
+Gs = (1-beta)*Gs+beta*G;
 Lap = G'*Gs;
 n = Mesh.n;
 M = 0.5*kron(av3term(n[2]+1,beta),speye(n[1]+1)) + 0.5*kron(speye(n[2]+1),av3term(n[1]+1,beta));
