@@ -15,8 +15,8 @@ function GetHelmholtzOperator(Hparam::HelmholtzParam,orderNeumannBC::Int64 = 2)
 	H = GetHelmholtzOperator(Hparam.Mesh, Hparam.m, Hparam.omega, Hparam.gamma, Hparam.NeumannOnTop,Hparam.Sommerfeld,orderNeumannBC);
 end
 
-function GetHelmholtzOperatorHO(Hparam::HelmholtzParam)
-	H = GetHelmholtzOperatorHO(Hparam.Mesh, Hparam.m, Hparam.omega, Hparam.gamma, Hparam.NeumannOnTop,Hparam.Sommerfeld);
+function GetHelmholtzOperatorHO(Hparam::HelmholtzParam,beta = 1.0)
+	H = GetHelmholtzOperatorHO(Hparam.Mesh, Hparam.m, Hparam.omega, Hparam.gamma, Hparam.NeumannOnTop,Hparam.Sommerfeld,beta);
 end
 
 function GetHelmholtzOperator(Msh::RegularMesh, mNodal::Array{Float64}, omega::Union{Float64,ComplexF64}, gamma::Array,
