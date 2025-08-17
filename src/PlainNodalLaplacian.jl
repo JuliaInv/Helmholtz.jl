@@ -68,26 +68,76 @@ end
 function getNodalSpreadGradients(Msh,avFunc)
 	n = Msh.n;
 	h = Msh.h;
-	tmp = ddxCN(n[1],h[1]);
-	D1 = kron(speye(n[2]+1),tmp);
-	D1s = kron(avFunc(n[2]+1),tmp);
 
-	tmp = ddxCN(n[2],h[2])
-	D2 = kron(tmp,speye(n[1]+1))
-	D2s = kron(tmp,avFunc(n[1]+1))
-	return [D1;D2],[D1s;D2s];
+    if length(n) == 2
+
+        tmp = ddxCN(n[1],h[1]);
+        D1 = kron(speye(n[2]+1),tmp);
+        D1s = kron(avFunc(n[2]+1),tmp);
+
+        tmp = ddxCN(n[2],h[2])
+        D2 = kron(tmp,speye(n[1]+1))
+        D2s = kron(tmp,avFunc(n[1]+1))
+
+        G = [D1;D2];
+        Gs = [D1s;D2s];
+
+    elseif length(n) == 3
+
+		tmp = ddxCN(n[1],h[1]);
+        D1 = kron(speye(n[3]+1),kron(speye(n[2]+1),tmp));
+        D1s = 0.5*(kron(speye(n[3]+1),kron(avFunc(n[2]+1),tmp)) + kron(avFunc(n[3]+1),kron(speye(n[2]+1),tmp)));
+
+        tmp = ddxCN(n[2],h[2]);
+        D2 = kron(speye(n[3]+1),kron(tmp,speye(n[1]+1)));
+        D2s = 0.5*(kron(speye(n[3]+1),kron(tmp,avFunc(n[1]+1))) + kron(avFunc(n[3]+1),kron(tmp,speye(n[1]+1))));
+
+        tmp = ddxCN(n[3],h[3]);
+        D3 = kron(tmp,kron(speye(n[2]+1),speye(n[1]+1)));
+        D3s = 0.5*(kron(tmp,kron(speye(n[2]+1),avFunc(n[1]+1))) + kron(tmp,kron(avFunc(n[2]+1),speye(n[1]+1))));
+
+        G = [D1;D2;D3];
+        Gs = [D1s;D2s;D3s];
+    end
+
+    return G,Gs
 end
 
 function getSpreadNodalLaplacianAndMass(Mesh,beta)
-# Grad  = getNodalGradientMatrix(Msh) 
-# Lap   = Grad'*Grad
-avFunc = n -> av3term(n,0.5);
-G,Gs = getNodalSpreadGradients(Mesh,avFunc);
-Gs = (1-beta)*Gs+beta*G;
-Lap = G'*Gs;
-n = Mesh.n;
-M = 0.5*kron(av3term(n[2]+1,beta),speye(n[1]+1)) + 0.5*kron(speye(n[2]+1),av3term(n[1]+1,beta));
-return Lap,M
+	# for 2D beta is a scalar and works both for the Laplacian and mass
+	# for 3D beta is a vector, where beta[1] is for the Laplacian and beta[2] for the mass
+
+    # Grad  = getNodalGradientMatrix(Msh) 
+    # Lap   = Grad'*Grad
+    n = Mesh.n;
+    if length(n) == 2
+
+        avFunc = n -> av3term(n,0.5);
+        G,Gs = getNodalSpreadGradients(Mesh,avFunc);
+        Gs = (1-beta)*Gs+beta*G;
+        Lap = G'*Gs;
+
+        M = 0.5*kron(av3term(n[2]+1,beta),speye(n[1]+1)) + 0.5*kron(speye(n[2]+1),av3term(n[1]+1,beta));
+
+    elseif length(n) == 3
+
+		if beta == 1
+			beta = [1;1]
+		end
+
+        avFunc = n -> av3term(n,0.5);
+        G,Gs = getNodalSpreadGradients(Mesh,avFunc);
+        Gs = (1-beta[1])*Gs+beta[1]*G;
+        Lap = G'*Gs;
+
+        third = (1.0/3.0);
+        M = third*(kron(speye(n[3]+1),kron(av3term(n[2]+1,beta[2]),speye(n[1]+1))) + 
+                   kron(speye(n[3]+1),kron(speye(n[2]+1),av3term(n[1]+1,beta[2]))) + 
+                   kron(av3term(n[3]+1,beta[2]),kron(speye(n[2]+1),speye(n[1]+1))));
+
+    end
+    
+    return Lap,M
 end
 
 
@@ -171,6 +221,3 @@ if M.dim==2
 else
 end
 end
-
-
-
