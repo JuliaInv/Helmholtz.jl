@@ -103,21 +103,76 @@ function getNodalSpreadGradients(Msh,avFunc)
     return G,Gs
 end
 
+
+###### new utils for wide mass ######
+
+function NN(n)
+# N = NN(n), matrix with stencil (1/2)*[1 * 1], nearest neighbor interpolation
+	N = spdiagm(0 => fill(1/2,n), 1 => fill(1/2,n)) 
+	return N
+end
+
+
+function Mass8pt(Msh,avFunc)
+# M = Mass8pt(Msh,av3term(n,0)) is a matrix of stencil (1/4)*[1 1 1 ; 1 0 1 ; 1 1 1]
+	n = Msh.n;
+	h = Msh.h;
+
+    if length(n) == 2
+
+        tmp = NN(n[1]);
+        M1 = kron(avFunc(n[2]+1),tmp);
+
+        tmp = NN(n[2])
+        M2 = kron(tmp,avFunc(n[1]+1))
+
+        M = M1 + M2
+
+    elseif length(n) == 3
+
+    end
+
+    return M
+end
+
+
+#####################################
+
 function getSpreadNodalLaplacianAndMass(Mesh,beta)
-	# for 2D beta is a scalar and works both for the Laplacian and mass
-	# for 3D beta is a vector, where beta[1] is for the Laplacian and beta[2] for the mass
+	# If beta is a scalar, then the Helmholtz operator is beta*Lap_standard + (1-beta)*Lap_skew + beta*Mass_lumped + (1-beta)*mass_cross
+	# That is, the Laplacian is general 9 point symmeric sum zero stencil and the mass is 5 points, like in LFA-tuned paper.
+	# If beta is a vector of length 2, then the Laplacian is 9 points as before and beta[1] determines the weight for the Laplacian.
+	# Then, if beta[2] is a scalar, the mass is 5 points with weight beta[2], and if beta[2] is a 2-vector, then 
+	# the mass is given by a general 9 points stencil with weights b=beta[2][1] and c=beta[2][2] in the notation of Jo, Shin, Suh.
 
     # Grad  = getNodalGradientMatrix(Msh) 
     # Lap   = Grad'*Grad
     n = Mesh.n;
     if length(n) == 2
 
+		if length(beta) == 1
+			beta = [beta;beta]
+		end
+
         avFunc = n -> av3term(n,0.5);
         G,Gs = getNodalSpreadGradients(Mesh,avFunc);
-        Gs = (1-beta)*Gs+beta*G;
+        Gs = (1-beta[1])*Gs+beta[1]*G;
         Lap = G'*Gs;
 
-        M = 0.5*kron(av3term(n[2]+1,beta),speye(n[1]+1)) + 0.5*kron(speye(n[2]+1),av3term(n[1]+1,beta));
+		if length(beta[2]) == 1
+			M = 0.5*kron(av3term(n[2]+1,beta[2]),speye(n[1]+1)) + 0.5*kron(speye(n[2]+1),av3term(n[1]+1,beta[2]));
+		elseif length(beta[2]) == 2
+			massFunc = n -> av3term(n,0.0);
+			Mwithcorners = Mass8pt(Mesh,massFunc)
+			tmp = beta[2]
+			b = tmp[1]
+			c = tmp[2]
+			t = (2c+b-1)/(1-b)
+			Mcross = 0.5*kron(av3term(n[2]+1,b),speye(n[1]+1)) + 0.5*kron(speye(n[2]+1),av3term(n[1]+1,b));
+			Mlumped = spdiagm(ones(size(Mcross,1)))
+			M = t*Mcross + (1-b-c)*Mwithcorners + (1-t)*b*Mlumped
+		end
+
 
     elseif length(n) == 3
 
