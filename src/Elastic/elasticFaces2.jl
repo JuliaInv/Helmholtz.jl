@@ -57,75 +57,70 @@ function getGradOps(n,h,avFunc = speye,beta = 1.0)
 		D22s = kron(tmp,avFunc(n[1]))
 		D22s = beta*D22 + (1-beta)*D22s;
 		return D11,D12,D21,D22,D11s,D12s,D21s,D22s
+
 	elseif length(n)==3
 		tmp = ddxCN(n[1],h[1])
 		D11 = kron(speye(n[3]),kron(speye(n[2]),tmp))
-		D11s = kron(avFunc(n[3]),kron(avFunc(n[2]),tmp))
-		# D11s = 0.5*(kron(speye(n[3]),kron(avFunc(n[2]),tmp)) + kron(avFunc(n[3]),kron(speye(n[2]),tmp)))
+		# D11s = kron(avFunc(n[3]),kron(avFunc(n[2]),tmp)) # fits LFA-tuned
+		D11s = 0.5*(kron(speye(n[3]),kron(avFunc(n[2]),tmp)) + kron(avFunc(n[3]),kron(speye(n[2]),tmp))) # for real high-order
 		D11 = convert(SparseMatrixCSC{Float32,Int64},D11)
 		D11s = convert(SparseMatrixCSC{Float32,Int64},beta*D11 + (1-beta)*D11s)
 
 		tmp = ddxNC(n[1],h[1])
 		D12 = kron(speye(n[3]),kron(speye(n[2]+1),tmp))
-		D12s = kron(avFunc(n[3]),kron(avFunc(n[2]+1),tmp))
-		# D12s = 0.5*(kron(speye(n[3]),kron(avFunc(n[2]+1),tmp)) + kron(avFunc(n[3]),kron(speye(n[2]+1),tmp)))
+		# D12s = kron(avFunc(n[3]),kron(avFunc(n[2]+1),tmp)) # fits LFA-tuned
+		D12s = 0.5*(kron(speye(n[3]),kron(avFunc(n[2]+1),tmp)) + kron(avFunc(n[3]),kron(speye(n[2]+1),tmp))) # for real high-order
 		D12 = convert(SparseMatrixCSC{Float32,Int64},D12)
 		D12s = convert(SparseMatrixCSC{Float32,Int64},beta*D12 + (1-beta)*D12s)
 		
-		
 		tmp = ddxNC(n[1],h[1])
 		D13 = kron(speye(n[3]+1),kron(speye(n[2]),tmp))
-		D13s = kron(avFunc(n[3]+1),kron(avFunc(n[2]),tmp))
-		# D13s = 0.5*(kron(speye(n[3]+1),kron(avFunc(n[2]),tmp)) + kron(avFunc(n[3]+1),kron(speye(n[2]),tmp)))
+		# D13s = kron(avFunc(n[3]+1),kron(avFunc(n[2]),tmp)) # fits LFA-tuned
+		D13s = 0.5*(kron(speye(n[3]+1),kron(avFunc(n[2]),tmp)) + kron(avFunc(n[3]+1),kron(speye(n[2]),tmp))) # for real high-order
 		D13 = convert(SparseMatrixCSC{Float32,Int64},D13)
 		D13s = convert(SparseMatrixCSC{Float32,Int64},beta*D13 + (1-beta)*D13s)
 		
-		
 		tmp = ddxNC(n[2],h[2])
 		D21 = kron(speye(n[3]),kron(tmp,speye(n[1]+1)))
-		D21s = kron(avFunc(n[3]),kron(tmp,avFunc(n[1]+1)))
-		# D21s = 0.5*(kron(speye(n[3]),kron(tmp,avFunc(n[1]+1))) + kron(avFunc(n[3]),kron(tmp,speye(n[1]+1))))
+		# D21s = kron(avFunc(n[3]),kron(tmp,avFunc(n[1]+1))) # fits LFA-tuned
+		D21s = 0.5*(kron(speye(n[3]),kron(tmp,avFunc(n[1]+1))) + kron(avFunc(n[3]),kron(tmp,speye(n[1]+1)))) # for real high-order
 		D21 = convert(SparseMatrixCSC{Float32,Int64},D21)
 		D21s = convert(SparseMatrixCSC{Float32,Int64},beta*D21 + (1-beta)*D21s)
 		
-		
 		tmp = ddxCN(n[2],h[2])
 		D22 = kron(speye(n[3]),kron(tmp,speye(n[1])))
-		D22s = kron(avFunc(n[3]),kron(tmp,avFunc(n[1])))
-		# D22s = 0.5*(kron(speye(n[3]),kron(tmp,avFunc(n[1]))) + kron(avFunc(n[3]),kron(tmp,speye(n[1]))))
+		# D22s = kron(avFunc(n[3]),kron(tmp,avFunc(n[1]))) # fits LFA-tuned
+		D22s = 0.5*(kron(speye(n[3]),kron(tmp,avFunc(n[1]))) + kron(avFunc(n[3]),kron(tmp,speye(n[1])))) # for real high-order
 		D22 = convert(SparseMatrixCSC{Float32,Int64},D22)
 		D22s = convert(SparseMatrixCSC{Float32,Int64},beta*D22 + (1-beta)*D22s)
 		
-		
 		tmp = ddxNC(n[2],h[2])
 		D23 = kron(speye(n[3]+1),kron(tmp,speye(n[1])))
-		D23s = kron(avFunc(n[3]+1),kron(tmp,avFunc(n[1])))
-		# D23s = 0.5*(kron(speye(n[3]+1),kron(tmp,avFunc(n[1]))) + kron(avFunc(n[3]+1),kron(tmp,speye(n[1]))))
+		# D23s = kron(avFunc(n[3]+1),kron(tmp,avFunc(n[1]))) # fits LFA-tuned
+		D23s = 0.5*(kron(speye(n[3]+1),kron(tmp,avFunc(n[1]))) + kron(avFunc(n[3]+1),kron(tmp,speye(n[1])))) # for real high-order
 		D23 = convert(SparseMatrixCSC{Float32,Int64},D23)
 		D23s = convert(SparseMatrixCSC{Float32,Int64},beta*D23 + (1-beta)*D23s)
-		
-		
 		
 		tmp = ddxNC(n[3],h[3])
 		D31 = kron(tmp,kron(speye(n[2]),speye(n[1]+1)))
 		D31 = convert(SparseMatrixCSC{Float32,Int64},D31)
-		D31s= kron(tmp,kron(avFunc(n[2]),avFunc(n[1]+1)))
-		# D31s= 0.5*(kron(tmp,kron(speye(n[2]),avFunc(n[1]+1))) + kron(tmp,kron(avFunc(n[2]),speye(n[1]+1))))
+		# D31s= kron(tmp,kron(avFunc(n[2]),avFunc(n[1]+1))) # fits LFA-tuned
+		D31s= 0.5*(kron(tmp,kron(speye(n[2]),avFunc(n[1]+1))) + kron(tmp,kron(avFunc(n[2]),speye(n[1]+1)))) # for real high-order
 		D31s = convert(SparseMatrixCSC{Float32,Int64},beta*D31 + (1-beta)*D31s)
 		
 
 		tmp = ddxNC(n[3],h[3])
 		D32 = kron(tmp,kron(speye(n[2]+1),speye(n[1])))
 		D32 = convert(SparseMatrixCSC{Float32,Int64},D32)
-		D32s = kron(tmp,kron(avFunc(n[2]+1),avFunc(n[1])))
-		# D32s = 0.5*(kron(tmp,kron(speye(n[2]+1),avFunc(n[1]))) + kron(tmp,kron(avFunc(n[2]+1),speye(n[1]))))
+		# D32s = kron(tmp,kron(avFunc(n[2]+1),avFunc(n[1]))) # fits LFA-tuned 
+		D32s = 0.5*(kron(tmp,kron(speye(n[2]+1),avFunc(n[1]))) + kron(tmp,kron(avFunc(n[2]+1),speye(n[1])))) # for real high-order
 		D32s = convert(SparseMatrixCSC{Float32,Int64},beta*D32s + (1-beta)*D32s)
 
 		tmp = ddxCN(n[3],h[3])
 		D33 = kron(tmp,kron(speye(n[2]),speye(n[1])))
 		D33 = convert(SparseMatrixCSC{Float32,Int64},D33)
-		D33s = kron(tmp,kron(avFunc(n[2]),avFunc(n[1])))
-		# D33s = 0.5*(kron(tmp,kron(speye(n[2]),avFunc(n[1]))) + kron(tmp,kron(avFunc(n[2]),speye(n[1]))))
+		# D33s = kron(tmp,kron(avFunc(n[2]),avFunc(n[1]))) # fits LFA-tuned
+		D33s = 0.5*(kron(tmp,kron(speye(n[2]),avFunc(n[1]))) + kron(tmp,kron(avFunc(n[2]),speye(n[1])))) # for real high-order
 		D33s = convert(SparseMatrixCSC{Float32,Int64},beta*D33 + (1-beta)*D33s)
 
 		return D11, D12, D13, D21, D22, D23, D31, D32, D33, D11s, D12s, D13s, D21s, D22s, D23s, D31s, D32s, D33s
