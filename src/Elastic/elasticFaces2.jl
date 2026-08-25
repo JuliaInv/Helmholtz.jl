@@ -216,15 +216,15 @@ function getSpreadFaceMassMatrix(n,beta)
 
 	elseif length(n)==3
 		third = (1.0/3.0);
-		A1 = third*kron(speye(n[3]),kron(av3term(n[2],beta),speye(n[1]+1))) 
-		     + third*kron(speye(n[3]),kron(speye(n[2]),av3term(n[1]+1,beta))) 
-			 + third*kron(av3term(n[3],beta),kron(speye(n[2]),speye(n[1]+1)));
-		A2 = third*kron(speye(n[3]),kron(speye(n[2]+1),av3term(n[1],beta))) 
-		     + third*kron(speye(n[3]),kron(av3term(n[2]+1,beta),speye(n[1]))) 
-			 + third*kron(av3term(n[3],beta),kron(speye(n[2]+1),speye(n[1]))); 
-		A3 = third*kron(speye(n[3]+1),kron(speye(n[2]),av3term(n[1],beta))) 
-		     + third*kron(speye(n[3]+1),kron(av3term(n[2],beta),speye(n[1]))) 
-			 + third*kron(av3term(n[3]+1,beta),kron(speye(n[2]),speye(n[1]))); 
+		A1 = third*kron(speye(n[3]),kron(av3term(n[2],beta[2]),speye(n[1]+1))) 
+		     + third*kron(speye(n[3]),kron(speye(n[2]),av3term(n[1]+1,beta[2]))) 
+			 + third*kron(av3term(n[3],beta[2]),kron(speye(n[2]),speye(n[1]+1)));
+		A2 = third*kron(speye(n[3]),kron(speye(n[2]+1),av3term(n[1],beta[2]))) 
+		     + third*kron(speye(n[3]),kron(av3term(n[2]+1,beta[2]),speye(n[1]))) 
+			 + third*kron(av3term(n[3],beta[2]),kron(speye(n[2]+1),speye(n[1]))); 
+		A3 = third*kron(speye(n[3]+1),kron(speye(n[2]),av3term(n[1],beta[2]))) 
+		     + third*kron(speye(n[3]+1),kron(av3term(n[2],beta[2]),speye(n[1]))) 
+			 + third*kron(av3term(n[3]+1,beta[2]),kron(speye(n[2]),speye(n[1]))); 
 		M = blockdiag(A1,A2,A3);
 	end
 	return M
