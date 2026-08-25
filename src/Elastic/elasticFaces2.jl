@@ -178,13 +178,42 @@ function GetDifferentialOperatorsSpreadOpType2(M::RegularMesh,beta::Float64)
 	return 0; 
 end
 
-function getSpreadFaceMassMatrix(n,beta::Float64)
+function getSpreadFaceMassMatrix(n,beta)
 	if length(n)==2
-		# A1 = 0.5*kron(av3term(n[2]+1,beta),speye(n[1])) + 0.5*kron(speye(n[2]+1),av3term(n[1],beta));
-		# A2 = 0.5*kron(speye(n[2]),av3term(n[1]+1,beta)) + 0.5*kron(av3term(n[2],beta),speye(n[1]+1));
-		A1 = 0.5*kron(av3term(n[2],beta),speye(n[1]+1)) + 0.5*kron(speye(n[2]),av3term(n[1]+1,beta));
-		A2 = 0.5*kron(speye(n[2]+1),av3term(n[1],beta)) + 0.5*kron(av3term(n[2]+1,beta),speye(n[1]));
-		M = blockdiag(A1,A2);
+
+		if length(beta[2]) == 1
+			### enables a 5-point mass stencil of the form:
+			###                  [0              (1-beta[2])/4             0 ; 
+            ###                   (1-beta[2])/4     beta[2]     (1-beta[2])/4 ;
+            ###                  0                (1-beta[2])/4            0];
+
+			# A1 = 0.5*kron(av3term(n[2]+1,beta[2]),speye(n[1])) + 0.5*kron(speye(n[2]+1),av3term(n[1],beta[2]));
+			# A2 = 0.5*kron(speye(n[2]),av3term(n[1]+1,beta[2])) + 0.5*kron(av3term(n[2],beta[2]),speye(n[1]+1));
+			A1 = 0.5*kron(av3term(n[2],beta[2]),speye(n[1]+1)) + 0.5*kron(speye(n[2]),av3term(n[1]+1,beta[2]));
+			A2 = 0.5*kron(speye(n[2]+1),av3term(n[1],beta[2])) + 0.5*kron(av3term(n[2]+1,beta[2]),speye(n[1]));
+			M = blockdiag(A1,A2);
+			
+		elseif length(beta[2]) == 2
+			### enables a 9-point mass stencil of the form:
+			###                  [(1-b-c)/4 c/4 (1-b-c)/4 ; 
+            ###                   c/4       b        c/4 ;
+            ###                  (1-b-c)/4 c/4 (1-b-c)/4];
+
+			tmp = beta[2]
+			b = tmp[1]
+			c = tmp[2]
+			Mcross1 = 0.5*kron(av3term(n[2],1-c),speye(n[1]+1)) + 0.5*kron(speye(n[2]),av3term(n[1]+1,1-c));
+			Mcross2 = 0.5*kron(av3term(n[2]+1,1-c),speye(n[1])) + 0.5*kron(speye(n[2]+1),av3term(n[1],1-c));
+			Mlumped1 = spdiagm(ones(size(Mcross1,1)));
+			Mlumped2 = spdiagm(ones(size(Mcross2,1)));
+			Mcorners1 = kron(av3term(n[2],0.0),av3term(n[1]+1,0.0));
+			Mcorners2 = kron(av3term(n[2]+1,0.0),av3term(n[1],0.0));
+			A1 = (1-b-c) * Mcorners1 + Mcross1 + (c+b-1) * Mlumped1
+			A2 = (1-b-c) * Mcorners2 + Mcross2 + (c+b-1) * Mlumped2
+			M = blockdiag(A1,A2);
+		end
+
+
 	elseif length(n)==3
 		third = (1.0/3.0);
 		A1 = third*kron(speye(n[3]),kron(av3term(n[2],beta),speye(n[1]+1))) 
