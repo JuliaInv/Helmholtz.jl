@@ -135,7 +135,7 @@ function getSpreadNodalLaplacianAndMass(Mesh,beta)
 			c = tmp[2]
 			Mcross = 0.5*kron(av3term(n[2]+1,1-c),speye(n[1]+1)) + 0.5*kron(speye(n[2]+1),av3term(n[1]+1,1-c));
 			Mlumped = spdiagm(ones(size(Mcross,1)))
-			Mcorners = kron(av3term(n[2]+1,0),av3term(n[1]+1,0))
+			Mcorners = kron(av3term(n[2]+1,0.0),av3term(n[1]+1,0.0))
 			M = (1-b-c) * Mcorners + Mcross + (c+b-1) * Mlumped
 		end
 
