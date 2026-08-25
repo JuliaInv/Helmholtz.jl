@@ -104,38 +104,6 @@ function getNodalSpreadGradients(Msh,avFunc)
 end
 
 
-###### new utils for wide mass ######
-
-function NN(n)
-# N = NN(n), matrix with stencil (1/2)*[1 * 1], nearest neighbor interpolation
-	N = spdiagm(0 => fill(1/2,n), 1 => fill(1/2,n)) 
-	return N
-end
-
-
-function Mass8pt(Msh,avFunc)
-# M = Mass8pt(Msh,av3term(n,0)) is a matrix of stencil (1/4)*[1 1 1 ; 1 0 1 ; 1 1 1]
-	n = Msh.n;
-	h = Msh.h;
-
-    if length(n) == 2
-
-        tmp = NN(n[1]);
-        M1 = kron(avFunc(n[2]+1),tmp);
-
-        tmp = NN(n[2])
-        M2 = kron(tmp,avFunc(n[1]+1))
-
-        M = M1 + M2
-
-    elseif length(n) == 3
-
-    end
-
-    return M
-end
-
-
 #####################################
 
 function getSpreadNodalLaplacianAndMass(Mesh,beta)
@@ -162,15 +130,13 @@ function getSpreadNodalLaplacianAndMass(Mesh,beta)
 		if length(beta[2]) == 1
 			M = 0.5*kron(av3term(n[2]+1,beta[2]),speye(n[1]+1)) + 0.5*kron(speye(n[2]+1),av3term(n[1]+1,beta[2]));
 		elseif length(beta[2]) == 2
-			massFunc = n -> av3term(n,0.0);
-			Mwithcorners = Mass8pt(Mesh,massFunc)
 			tmp = beta[2]
 			b = tmp[1]
 			c = tmp[2]
-			t = (2c+b-1)/(1-b)
-			Mcross = 0.5*kron(av3term(n[2]+1,b),speye(n[1]+1)) + 0.5*kron(speye(n[2]+1),av3term(n[1]+1,b));
+			Mcross = 0.5*kron(av3term(n[2]+1,1-c),speye(n[1]+1)) + 0.5*kron(speye(n[2]+1),av3term(n[1]+1,1-c));
 			Mlumped = spdiagm(ones(size(Mcross,1)))
-			M = t*Mcross + (1-b-c)*Mwithcorners + (1-t)*b*Mlumped
+			Mcorners = kron(av3term(n[2]+1,0),av3term(n[1]+1,0))
+			M = (1-b-c) * Mcorners + Mcross + (c+b-1) * Mlumped
 		end
 
 
