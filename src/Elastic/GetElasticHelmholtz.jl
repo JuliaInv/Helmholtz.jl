@@ -9,7 +9,11 @@ function GetElasticHelmholtzOperator(p::ElasticHelmholtzParam;spread::Bool = fal
 	# beta is a vector [beta_lap;beta_mass], in 2D the two components are equal. 
 	# for high order discretization, beta = [2/3;2/3] in 2D and [1/3;1/2] in 3D
 	if !p.MixedFormulation
-		return GetElasticHelmholtzOp(p.Mesh, p.mu,p.lambda,p.rho,p.omega,p.gamma);
+		if spread == false
+			return GetElasticHelmholtzOp(p.Mesh, p.mu,p.lambda,p.rho,p.omega,p.gamma);
+		else
+			return GetElasticHelmholtzOpSpread(p.Mesh, p.mu,p.lambda,p.rho,p.omega,p.gamma,beta);
+		end
 	else
 		if spread == false
 			return GetElasticHelmholtzOpReformulated(p.Mesh, p.mu,p.lambda,p.rho,p.omega,p.gamma);
@@ -112,6 +116,22 @@ function GetElasticHelmholtzOp(Mesh::RegularMesh, mu::ArrayTypes,lambda::ArrayTy
 	# println(norm(H-H2,1)/norm(H,1))
 	return H;						
 end
+
+
+
+function GetElasticHelmholtzOpSpread(Mesh::RegularMesh, mu::ArrayTypes,lambda::ArrayTypes,rho::ArrayTypes, omega::Float64, gamma::Array{Float64}, beta)
+
+	vectorGrad,Div,nf,vectorGrad_spread,Div_spread = GetDifferentialOperatorsSpreadOpType2(Mesh,beta[1]);
+	Mu     = getTensorMassMatrix(Mesh,mu[:])[1];
+	LambdaMuCells = spdiagm(0=>(lambda[:] + mu[:]));
+	massCells = rho[:].*((1.0.-(1im/omega)*gamma[:])*(1.0./prod(Mesh.h)));
+	Rho    	   = getFaceMassMatrix(Mesh, massCells, saveMat=false, avN2C = avN2C_Nearest);
+	Rho  				= getSpreadFaceMassMatrix(Mesh.n,beta)*Rho;
+	H = Div'*LambdaMuCells*Div_spread + vectorGrad'*Mu*vectorGrad_spread - omega^2*Rho;
+
+	return H;						
+end
+
 
 
 function GetElasticHelmholtzOpReformulated(Mesh::RegularMesh,mu::ArrayTypes,lambda::ArrayTypes,rho::ArrayTypes, omega::Float64, gamma::ArrayTypes)
