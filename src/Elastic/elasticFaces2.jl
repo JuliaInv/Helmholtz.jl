@@ -114,7 +114,7 @@ function getGradOps(n,h,avFunc = speye,beta = 1.0)
 		D32 = convert(SparseMatrixCSC{Float32,Int64},D32)
 		# D32s = kron(tmp,kron(avFunc(n[2]+1),avFunc(n[1]))) # fits LFA-tuned 
 		D32s = 0.5*(kron(tmp,kron(speye(n[2]+1),avFunc(n[1]))) + kron(tmp,kron(avFunc(n[2]+1),speye(n[1])))) # for real high-order
-		D32s = convert(SparseMatrixCSC{Float32,Int64},beta*D32s + (1-beta)*D32s)
+		D32s = convert(SparseMatrixCSC{Float32,Int64},beta*D32 + (1-beta)*D32s)
 
 		tmp = ddxCN(n[3],h[3])
 		D33 = kron(tmp,kron(speye(n[2]),speye(n[1])))
@@ -215,17 +215,22 @@ function getSpreadFaceMassMatrix(n,beta)
 
 
 	elseif length(n)==3
+
 		third = (1.0/3.0);
-		A1 = third*kron(speye(n[3]),kron(av3term(n[2],beta[2]),speye(n[1]+1))) 
-		     + third*kron(speye(n[3]),kron(speye(n[2]),av3term(n[1]+1,beta[2]))) 
-			 + third*kron(av3term(n[3],beta[2]),kron(speye(n[2]),speye(n[1]+1)));
-		A2 = third*kron(speye(n[3]),kron(speye(n[2]+1),av3term(n[1],beta[2]))) 
-		     + third*kron(speye(n[3]),kron(av3term(n[2]+1,beta[2]),speye(n[1]))) 
-			 + third*kron(av3term(n[3],beta[2]),kron(speye(n[2]+1),speye(n[1]))); 
-		A3 = third*kron(speye(n[3]+1),kron(speye(n[2]),av3term(n[1],beta[2]))) 
-		     + third*kron(speye(n[3]+1),kron(av3term(n[2],beta[2]),speye(n[1]))) 
-			 + third*kron(av3term(n[3]+1,beta[2]),kron(speye(n[2]),speye(n[1]))); 
+		A1 = third * kron(speye(n[3]),kron(av3term(n[2],beta[2]),speye(n[1]+1))) +
+			third * kron(speye(n[3]),kron(speye(n[2]),av3term(n[1]+1,beta[2]))) +
+			third * kron(av3term(n[3],beta[2]),kron(speye(n[2]),speye(n[1]+1)));
+
+		A2 = third * kron(speye(n[3]),kron(speye(n[2]+1),av3term(n[1],beta[2]))) +
+			third * kron(speye(n[3]),kron(av3term(n[2]+1,beta[2]),speye(n[1]))) +
+			third * kron(av3term(n[3],beta[2]),kron(speye(n[2]+1),speye(n[1]))); 
+
+		A3 = third * kron(speye(n[3]+1),kron(speye(n[2]),av3term(n[1],beta[2]))) +
+			third * kron(speye(n[3]+1),kron(av3term(n[2],beta[2]),speye(n[1]))) +
+			third * kron(av3term(n[3]+1,beta[2]),kron(speye(n[2]),speye(n[1]))); 
+			
 		M = blockdiag(A1,A2,A3);
+
 	end
 	return M
 end
