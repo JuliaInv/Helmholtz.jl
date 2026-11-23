@@ -33,17 +33,36 @@ end
 function getElasticPointSourceMid(Minv,TYPE)
 ## Generating the right hand side
 if Minv.dim==3
-	qx = zeros(TYPE,tuple(Minv.n + [1; 0; 0]...));
-	qy = zeros(TYPE,tuple(Minv.n + [0; 1; 0]...));
-	qz = zeros(TYPE,tuple(Minv.n + [0; 0; 1]...));
-	error("getElasticPointSourceMid: Correct below:")
-	src = [div(Minv.n[1],2),div(Minv.n[2],2),1];
-	qz[src[1],src[2],1] = -2.0./(Minv.h[1]);
-	qx[src[1],src[2],1] = -1.0./(Minv.h[3]);
-	qx[src[1]+1,src[2],1] = +1.0./(Minv.h[3]);
-	qy[src[1],src[2],1] = -1.0./(Minv.h[3]);
-	qy[src[1],src[2]+1,1] = +1.0./(Minv.h[3]);
-	q = vec([qx[:]; qy[:]; qz[:];]);
+	# qx = zeros(TYPE,tuple(Minv.n + [1; 0; 0]...));
+	# qy = zeros(TYPE,tuple(Minv.n + [0; 1; 0]...));
+	# qz = zeros(TYPE,tuple(Minv.n + [0; 0; 1]...));
+	# error("getElasticPointSourceMid: Correct below:")
+	# src = [div(Minv.n[1],2),div(Minv.n[2],2),1];
+	# qz[src[1],src[2],1] = -2.0./(Minv.h[1]);
+	# qx[src[1],src[2],1] = -1.0./(Minv.h[3]);
+	# qx[src[1]+1,src[2],1] = +1.0./(Minv.h[3]);
+	# qy[src[1],src[2],1] = -1.0./(Minv.h[3]);
+	# qy[src[1],src[2]+1,1] = +1.0./(Minv.h[3]);
+	# q = vec([qx[:]; qy[:]; qz[:];]);
+
+	###################
+
+    qx = zeros(TYPE, tuple(Minv.n + [1; 0; 0]...))
+    qy = zeros(TYPE, tuple(Minv.n + [0; 1; 0]...))
+    qz = zeros(TYPE, tuple(Minv.n + [0; 0; 1]...))
+
+    src = div.(Minv.n, 2)
+
+    qx[src[1],   src[2], src[3]] = -1.0 / Minv.h[1]^2
+    qx[src[1]+1, src[2], src[3]] = +1.0 / Minv.h[1]^2
+
+    qy[src[1], src[2],   src[3]] = -1.0 / Minv.h[2]^2
+    qy[src[1], src[2]+1, src[3]] = +1.0 / Minv.h[2]^2
+
+    qz[src[1], src[2], src[3]]   = -1.0 / Minv.h[3]^2
+    qz[src[1], src[2], src[3]+1] = +1.0 / Minv.h[3]^2
+
+    q = vec([qx[:]; qy[:]; qz[:]])
 else
 	qx = zeros(TYPE,tuple(Minv.n + [1; 0]...))
 	qy = zeros(TYPE,tuple(Minv.n + [0; 1]...))
